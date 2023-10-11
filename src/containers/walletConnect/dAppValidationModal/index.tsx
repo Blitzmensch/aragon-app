@@ -15,7 +15,7 @@ import {
 } from 'react-hook-form';
 import {useTranslation} from 'react-i18next';
 import styled from 'styled-components';
-import {SessionTypes, SignClientTypes} from '@walletconnect/types';
+import {SessionTypes, SignClientTypes, Verify} from '@walletconnect/types';
 
 import ModalBottomSheetSwitcher from 'components/modalBottomSheetSwitcher';
 import ModalHeader from 'components/modalHeader';
@@ -23,7 +23,7 @@ import useScreen from 'hooks/useScreen';
 import {handleClipboardActions} from 'utils/library';
 import {useAlertContext} from 'context/alert';
 import {TransactionState as ConnectionState} from 'utils/constants/misc';
-import {useWalletConnectContext} from '../walletConnectProvider';
+import {useWalletConnectInterceptor} from '../walletConnectProvider';
 
 type Props = {
   onBackButtonClicked: () => void;
@@ -54,7 +54,13 @@ const WCdAppValidation: React.FC<Props> = props => {
     ConnectionState.WAITING
   );
 
-  const {wcConnect, sessions} = useWalletConnectContext();
+  const handleWCVerify = useCallback((verifyContext: Verify.Context) => {
+    console.log('handleWCVerify', verifyContext);
+  }, []);
+
+  const {wcConnect, sessions} = useWalletConnectInterceptor({
+    verifyCallback: handleWCVerify,
+  });
 
   const {control} = useFormContext();
   const {errors} = useFormState({control});

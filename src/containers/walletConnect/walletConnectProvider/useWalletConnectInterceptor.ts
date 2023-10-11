@@ -1,6 +1,6 @@
 import {useNetwork} from 'context/network';
 import {useCallback, useState, useEffect} from 'react';
-import {PairingTypes, SessionTypes} from '@walletconnect/types';
+import {PairingTypes, SessionTypes, Verify} from '@walletconnect/types';
 
 import {walletConnectInterceptor} from 'services/walletConnectInterceptor';
 import {CHAIN_METADATA, SUPPORTED_CHAIN_ID} from 'utils/constants';
@@ -26,7 +26,13 @@ export type WcInterceptorValues = {
   actions: WcActionRequest[];
 };
 
-export function useWalletConnectInterceptor(): WcInterceptorValues {
+type WalletConnectInterceptorProps = {
+  verifyCallback?: (verifyContext: Verify.Context) => void;
+};
+
+export function useWalletConnectInterceptor(
+  options?: WalletConnectInterceptorProps
+): WcInterceptorValues {
   const {network} = useNetwork();
 
   const {data: daoDetails} = useDaoDetailsQuery();
@@ -69,15 +75,16 @@ export function useWalletConnectInterceptor(): WcInterceptorValues {
 
   const handleApprove = useCallback(
     async (data: Web3WalletTypes.SessionProposal) => {
-      await walletConnectInterceptor.approveSession(
+      const verifyContext = await walletConnectInterceptor.approveSession(
         data,
         daoDetails?.address as string,
         SUPPORTED_CHAIN_ID
       );
 
       updateActiveSessions();
+      options?.verifyCallback?.(verifyContext);
     },
-    [daoDetails?.address, updateActiveSessions]
+    [daoDetails?.address, options, updateActiveSessions]
   );
 
   const handleRequest = useCallback(

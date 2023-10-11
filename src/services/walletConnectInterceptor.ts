@@ -3,7 +3,7 @@ import {buildApprovedNamespaces, getSdkError} from '@walletconnect/utils';
 import Web3WalletClient, {Web3Wallet} from '@walletconnect/web3wallet';
 import {AuthClientTypes} from '@walletconnect/auth-client';
 import {Web3WalletTypes} from '@walletconnect/web3wallet';
-import {SessionTypes} from '@walletconnect/types';
+import {Verify} from '@walletconnect/types';
 
 class WalletConnectInterceptor {
   clientMetadata: AuthClientTypes.Metadata = {
@@ -61,7 +61,7 @@ class WalletConnectInterceptor {
     proposal: Web3WalletTypes.SessionProposal,
     accountAddress: string,
     supportedChains: number[] | readonly number[] = []
-  ): Promise<SessionTypes.Struct> | undefined {
+  ): Verify.Context {
     const approvedNamespaces = buildApprovedNamespaces({
       proposal: proposal.params,
       supportedNamespaces: {
@@ -74,10 +74,14 @@ class WalletConnectInterceptor {
       },
     });
 
-    return this.client?.approveSession({
-      id: proposal.id,
-      namespaces: approvedNamespaces,
-    });
+    if (proposal.verifyContext.verified.validation === 'VALID') {
+      this.client?.approveSession({
+        id: proposal.id,
+        namespaces: approvedNamespaces,
+      });
+    }
+
+    return proposal.verifyContext;
   }
 
   rejectSession(
