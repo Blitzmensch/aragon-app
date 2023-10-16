@@ -1,6 +1,6 @@
 import {AlertInline, IconChevronRight, ListItemAction} from '@aragon/ods';
 import {SessionTypes, SignClientTypes} from '@walletconnect/types';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {useTranslation} from 'react-i18next';
 import styled from 'styled-components';
 
@@ -32,12 +32,32 @@ const AllowListDApps: SignClientTypes.Metadata[] = [
   },
 ];
 
+if (import.meta.env.DEV) {
+  AllowListDApps.push({
+    name: 'Connect any app',
+    description: 'Connect any other app',
+    url: 'https://swap.cow.fi',
+    icons: [],
+  });
+}
+
+let DApps: SignClientTypes.Metadata[] = [];
+
 const SelectWCApp: React.FC<Props> = props => {
   const {t} = useTranslation();
   const {isDesktop} = useScreen();
   const {onConnectNewdApp, onSelectExistingdApp, onClose, isOpen} = props;
 
   const {activeSessions} = useWalletConnectContext();
+
+  useEffect(() => {
+    if (import.meta.env.DEV) {
+      DApps = [
+        ...AllowListDApps,
+        ...activeSessions.map(session => session.peer.metadata),
+      ];
+    }
+  }, [activeSessions]);
 
   /*************************************************
    *                     Render                    *
@@ -55,7 +75,7 @@ const SelectWCApp: React.FC<Props> = props => {
       />
       <Content>
         <div className="space-y-1">
-          {AllowListDApps.map(dApp => {
+          {DApps.map(dApp => {
             const filteredSession = activeSessions.filter(session =>
               session.peer.metadata.name
                 .toLowerCase()

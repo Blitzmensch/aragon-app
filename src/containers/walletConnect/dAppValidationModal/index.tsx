@@ -147,22 +147,24 @@ const WCdAppValidation: React.FC<Props> = props => {
     if (
       isLoading &&
       currentSession != null &&
-      currentSession.peer.metadata.name
+      (currentSession.peer.metadata.name
         .toLowerCase()
-        .includes((selecteddApp as SignClientTypes.Metadata).name.toLowerCase())
+        .includes(
+          (selecteddApp as SignClientTypes.Metadata).name.toLowerCase()
+        ) ||
+        import.meta.env.DEV)
     ) {
-      setConnectionStatus(
-        currentSession.acknowledged
-          ? ConnectionState.SUCCESS
-          : ConnectionState.ERROR
-      );
+      console.log('SUCCESS');
+      setConnectionStatus(ConnectionState.SUCCESS);
     } else if (
+      isLoading &&
       currentSession?.peer.metadata.name
         .toLowerCase()
         .includes(
           (selecteddApp as SignClientTypes.Metadata).name.toLowerCase()
         ) === false
     ) {
+      console.log('INCORRECT_URI');
       setConnectionStatus(ConnectionState.INCORRECT_URI);
     } else if (isSuccess && currentSession == null) {
       resetConnectionState();
