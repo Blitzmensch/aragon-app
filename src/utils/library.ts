@@ -12,7 +12,8 @@ import {
 import {
   DaoAction,
   SupportedNetwork as SdkSupportedNetworks,
-  bytesToHex, resolveIpfsCid
+  bytesToHex,
+  resolveIpfsCid,
 } from '@aragon/sdk-client-common';
 import {fetchEnsAvatar} from '@wagmi/core';
 import {BigNumber, BigNumberish, constants, providers} from 'ethers';
@@ -378,6 +379,33 @@ export async function decodeMetadataToAction(
     };
   } catch (error) {
     console.error('Error decoding update dao metadata action', error);
+  }
+}
+
+export async function decodeUpgradeToAndCallAction(
+  data: Uint8Array | undefined,
+  client: Client | undefined
+): Promise<ActionUpdateMetadata | undefined> {
+  if (!client || !data) {
+    console.error('SDK client is not initialized correctly');
+    return;
+  }
+
+  try {
+    const decodedMetadata = await client.decoding.daoUpdateAction(data);
+
+    console.log('daoUpdateAction', decodedMetadata);
+
+    return {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      name: 'upgrade',
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      inputs: decodedMetadata,
+    };
+  } catch (error) {
+    console.error('Error decoding upgrade DAO action', error);
   }
 }
 

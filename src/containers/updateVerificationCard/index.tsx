@@ -51,12 +51,12 @@ export const UpdateVerificationCard: React.FC<UpdateVerificationCardProps> = ({
       // isOsUpdateProposal
     );
 
-  console.log(
-    'pluginUpdateVerification',
-    pluginUpdateVerification,
-    osUpdateVerification,
-    actions
-  );
+  // console.log(
+  //   'pluginUpdateVerification',
+  //   pluginUpdateVerification,
+  //   osUpdateVerification,
+  //   actions
+  // );
 
   /** @todo Figure put how to get plugin registry update */
   const pluginRegistryAddress = daoDetails?.address || '';

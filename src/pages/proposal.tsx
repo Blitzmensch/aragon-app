@@ -66,6 +66,7 @@ import {
   decodePluginSettingsToAction,
   decodeRemoveMembersToAction,
   decodeToExternalAction,
+  decodeUpgradeToAndCallAction,
   decodeWithdrawToAction,
   shortenAddress,
   toDisplayEns,
@@ -260,6 +261,7 @@ export const Proposal: React.FC = () => {
         client?.decoding.findInterface(action.data) ||
         pluginClient?.decoding.findInterface(action.data);
 
+      console.log(functionParams);
       switch (functionParams?.functionName) {
         case 'transfer':
           return decodeWithdrawToAction(
@@ -290,6 +292,8 @@ export const Proposal: React.FC = () => {
           return decodeMultisigSettingsToAction(action.data, multisigClient);
         case 'setMetadata':
           return decodeMetadataToAction(action.data, client);
+        case 'upgradeToAndCall':
+          return decodeUpgradeToAndCallAction(action.data, client);
         default: {
           try {
             const decodedAction = await decodeWithdrawToAction(
