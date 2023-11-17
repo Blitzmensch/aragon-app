@@ -236,6 +236,11 @@ export const GaslessVotingTerminal: React.FC<CommitteeVotingTerminalProps> = ({
   ]);
 
   const ApprovalVotingTerminal = () => {
+    const missing =
+      (mappedProps?.minApproval as number) -
+      (mappedProps?.approvals?.length as number);
+    const missingParticipation = missing < 0 ? 0 : missing;
+
     return (
       <VotingTerminal
         status={proposal.status}
@@ -249,6 +254,7 @@ export const GaslessVotingTerminal: React.FC<CommitteeVotingTerminalProps> = ({
         className={
           'border border-t-0 border-neutral-100 bg-neutral-0 px-4 py-5 md:p-6'
         }
+        missingParticipation={missingParticipation}
         {...mappedProps}
       />
     );

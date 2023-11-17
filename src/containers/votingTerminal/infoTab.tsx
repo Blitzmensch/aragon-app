@@ -29,6 +29,7 @@ type Props = Pick<
   missingApprovalOrParticipation: number;
   uniqueVoters?: number;
   voteOptions: string;
+  isMultisigProposal?: boolean;
 };
 
 const InfoTab: React.FC<Props> = ({
@@ -47,9 +48,9 @@ const InfoTab: React.FC<Props> = ({
   supportThreshold,
   uniqueVoters,
   preciseEndDate,
+  isMultisigProposal,
 }) => {
   const {t} = useTranslation();
-  const isMultisigProposal = minApproval != null && minApproval !== 0;
 
   return (
     <>

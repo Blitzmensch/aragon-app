@@ -305,6 +305,7 @@ export const VotingTerminal: React.FC<VotingTerminalProps> = ({
           supportThreshold={supportThreshold}
           uniqueVoters={daoToken ? voters.length : undefined}
           voteOptions={voteOptions}
+          isMultisigProposal={isMultisigProposal}
         />
       )}
 
