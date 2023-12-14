@@ -1,9 +1,4 @@
 :9080 {
-    handle /* {
-        root * website
-        file_server {
-            precompressed br gzip
-        }
-        try_files {path} /index.html
-    }
+    root * /website
+    file_server
 }
