@@ -1,4 +1,4 @@
-import * as rudderAnalytics from 'rudder-sdk-js';
+import * as rudderAnalytics from '@rudderstack/analytics-js';
 
 /**
  * Sends analytics information about the events logged.
