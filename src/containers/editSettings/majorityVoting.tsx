@@ -52,7 +52,7 @@ export const EditMvSettings: React.FC<EditMvSettingsProps> = ({daoDetails}) => {
 
   const {setValue, control} = useFormContext();
   const {fields, replace} = useFieldArray({name: 'daoLinks', control});
-  const {errors, isValid, isDirty, dirtyFields} = useFormState({control});
+  const {errors, isValid, isDirty} = useFormState({control});
 
   const pluginAddress = daoDetails?.plugins?.[0]?.instanceAddress as string;
   const pluginType: PluginTypes = daoDetails?.plugins?.[0]?.id as PluginTypes;
@@ -100,6 +100,7 @@ export const EditMvSettings: React.FC<EditMvSettingsProps> = ({daoDetails}) => {
     executionExpirationHours,
     executionExpirationDays,
     committeeMinimumApproval,
+    actions,
   ] = useWatch({
     name: [
       'daoName',
@@ -119,6 +120,7 @@ export const EditMvSettings: React.FC<EditMvSettingsProps> = ({daoDetails}) => {
       'executionExpirationHours',
       'executionExpirationDays',
       'committeeMinimumApproval',
+      'actions',
     ],
     control,
   });
@@ -231,7 +233,8 @@ export const EditMvSettings: React.FC<EditMvSettingsProps> = ({daoDetails}) => {
         Number(executionExpirationHours) !== approvalHours ||
         Number(executionExpirationDays) !== approvalDays ||
         committeeMinimumApproval !==
-          (votingSettings as GaslessPluginVotingSettings).minTallyApprovals
+          (votingSettings as GaslessPluginVotingSettings).minTallyApprovals ||
+        actions.length > 0
       );
     }
     return false;
@@ -370,13 +373,6 @@ export const EditMvSettings: React.FC<EditMvSettingsProps> = ({daoDetails}) => {
     // Used to show the original execution committee members on the review screen
     setValue('committee', executionMultisigMembers);
 
-    setValue('actions', [
-      {
-        name: 'add_address',
-        inputs: {memberWallets: []},
-      },
-    ]);
-
     setValue(
       'committeeMinimumApproval',
       (votingSettings as GaslessPluginVotingSettings).minTallyApprovals
@@ -492,11 +488,8 @@ export const EditMvSettings: React.FC<EditMvSettingsProps> = ({daoDetails}) => {
   // Note: using isDirty here to allow time for form to fill up before
   // rendering a value or else there will be noticeable render with blank form.
   if (!isDirty) {
-    console.log('NOT DIRTY', dirtyFields);
     return <Loading />;
   }
-
-  console.log('DIRTY', dirtyFields);
 
   return (
     <PageWrapper
