@@ -39,6 +39,12 @@ import {ProposeNewSettings} from 'utils/paths';
 import {GaslessPluginVotingSettings} from '@vocdoni/gasless-voting';
 import {ManageExecutionMultisig} from '../manageExecutionMultisig';
 import {MultisigDaoMember} from '../../hooks/useDaoMembers';
+import {actionsAreValid as validateGaslessActions} from '../../pages/manageMembers';
+import {
+  ActionAddAddress,
+  ActionRemoveAddress,
+  ManageMembersFormData,
+} from '../../utils/types';
 
 type EditMvSettingsProps = {
   daoDetails: DaoDetails;
@@ -226,15 +232,25 @@ export const EditMvSettings: React.FC<EditMvSettingsProps> = ({daoDetails}) => {
       voteReplacement !== daoVotingMode.voteReplacement;
   }
 
-  const isGaslessChanged = useMemo(() => {
+  const gaslessActionsAreValid = useMemo(() => {
+    if (isGasless && votingSettings) {
+      return validateGaslessActions(
+        errors,
+        actions,
+        (votingSettings as GaslessPluginVotingSettings).minTallyApprovals
+      );
+    }
+    return true;
+  }, [actions, errors, isGasless, votingSettings]);
+
+  const gaslesSettingsChanged = useMemo(() => {
     if (isGasless && votingSettings) {
       return (
         Number(executionExpirationMinutes) !== approvalMinutes ||
         Number(executionExpirationHours) !== approvalHours ||
         Number(executionExpirationDays) !== approvalDays ||
-        committeeMinimumApproval !==
-          (votingSettings as GaslessPluginVotingSettings).minTallyApprovals ||
-        actions.length > 0
+        Number(committeeMinimumApproval) !==
+          (votingSettings as GaslessPluginVotingSettings).minTallyApprovals
       );
     }
     return false;
@@ -249,6 +265,9 @@ export const EditMvSettings: React.FC<EditMvSettingsProps> = ({daoDetails}) => {
     isGasless,
     votingSettings,
   ]);
+
+  const isGaslessChanged =
+    gaslesSettingsChanged || gaslessActionsChanged(actions);
 
   // calculate proposer
   let daoEligibleProposer: TokenVotingProposalEligibility =
@@ -578,7 +597,9 @@ export const EditMvSettings: React.FC<EditMvSettingsProps> = ({daoDetails}) => {
                 label={t('settings.reviewProposal')}
                 iconLeft={<IconGovernance />}
                 size="large"
-                disabled={settingsUnchanged || !isValid}
+                disabled={
+                  settingsUnchanged || !isValid || !gaslessActionsAreValid
+                }
                 onClick={() =>
                   navigate(
                     generatePath(ProposeNewSettings, {
@@ -606,6 +627,23 @@ export const EditMvSettings: React.FC<EditMvSettingsProps> = ({daoDetails}) => {
     />
   );
 };
+
+function gaslessActionsChanged(formActions: ManageMembersFormData['actions']) {
+  for (let i = 0; i < formActions.length; i++) {
+    if (
+      formActions[i].name === 'add_address' ||
+      formActions[i].name === 'remove_address'
+    ) {
+      const memberWallets = (
+        formActions[i] as ActionAddAddress | ActionRemoveAddress
+      ).inputs.memberWallets;
+      // Check if at least one of the member wallets contain info
+      if (memberWallets.length > 0 && memberWallets[0].address !== '')
+        return true;
+    }
+  }
+  return false;
+}
 
 const Container = styled.div.attrs({})``;
 
