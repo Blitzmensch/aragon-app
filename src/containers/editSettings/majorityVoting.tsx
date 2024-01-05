@@ -39,7 +39,6 @@ import {ProposeNewSettings} from 'utils/paths';
 import {GaslessPluginVotingSettings} from '@vocdoni/gasless-voting';
 import {ManageExecutionMultisig} from '../manageExecutionMultisig';
 import {MultisigDaoMember} from '../../hooks/useDaoMembers';
-import {actionsAreValid as validateGaslessActions} from '../../pages/manageMembers';
 import {
   ActionAddAddress,
   ActionRemoveAddress,
@@ -232,17 +231,6 @@ export const EditMvSettings: React.FC<EditMvSettingsProps> = ({daoDetails}) => {
       voteReplacement !== daoVotingMode.voteReplacement;
   }
 
-  const gaslessActionsAreValid = useMemo(() => {
-    if (isGasless && votingSettings) {
-      return validateGaslessActions(
-        errors,
-        actions,
-        (votingSettings as GaslessPluginVotingSettings).minTallyApprovals
-      );
-    }
-    return true;
-  }, [actions, errors, isGasless, votingSettings]);
-
   const gaslesSettingsChanged = useMemo(() => {
     if (isGasless && votingSettings) {
       return (
@@ -406,6 +394,28 @@ export const EditMvSettings: React.FC<EditMvSettingsProps> = ({daoDetails}) => {
     votingSettings,
   ]);
 
+  const resetGaslessActions = useCallback(() => {
+    setValue('actions', [
+      {
+        inputs: {
+          memberWallets: [
+            {
+              address: '',
+              ensName: '',
+            },
+          ],
+        },
+        name: 'add_address',
+      },
+      {
+        inputs: {
+          memberWallets: [],
+        },
+        name: 'remove_address',
+      },
+    ]);
+  }, [setValue]);
+
   const settingsUnchanged =
     !isGovernanceChanged &&
     !isMetadataChanged &&
@@ -416,7 +426,10 @@ export const EditMvSettings: React.FC<EditMvSettingsProps> = ({daoDetails}) => {
     setCurrentMetadata();
     setCurrentCommunity();
     setCurrentGovernance();
-    setCurrentGasless();
+    if (isGasless) {
+      setCurrentGasless();
+      resetGaslessActions();
+    }
   };
 
   useEffect(() => {
@@ -438,11 +451,14 @@ export const EditMvSettings: React.FC<EditMvSettingsProps> = ({daoDetails}) => {
       setCurrentMetadata();
       setCurrentCommunity();
       setCurrentGovernance();
-      setCurrentGasless();
+      if (isGasless) {
+        setCurrentGasless();
+      }
     }
   }, [
     dataFetched,
     isDirty,
+    isGasless,
     setCurrentCommunity,
     setCurrentGasless,
     setCurrentGovernance,
@@ -597,9 +613,7 @@ export const EditMvSettings: React.FC<EditMvSettingsProps> = ({daoDetails}) => {
                 label={t('settings.reviewProposal')}
                 iconLeft={<IconGovernance />}
                 size="large"
-                disabled={
-                  settingsUnchanged || !isValid || !gaslessActionsAreValid
-                }
+                disabled={settingsUnchanged || !isValid}
                 onClick={() =>
                   navigate(
                     generatePath(ProposeNewSettings, {
@@ -628,6 +642,10 @@ export const EditMvSettings: React.FC<EditMvSettingsProps> = ({daoDetails}) => {
   );
 };
 
+/**
+ * Util function to know if remove/add actions are added for the gasless plugin.
+ * @param formActions
+ */
 function gaslessActionsChanged(formActions: ManageMembersFormData['actions']) {
   for (let i = 0; i < formActions.length; i++) {
     if (
