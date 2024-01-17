@@ -1,8 +1,4 @@
-import {
-  CreateMajorityVotingProposalParams,
-  Erc20TokenDetails,
-  Erc20WrapperTokenDetails,
-} from '@aragon/sdk-client';
+import {Erc20TokenDetails, Erc20WrapperTokenDetails} from '@aragon/sdk-client';
 import {ProposalMetadata} from '@aragon/sdk-client-common';
 import {useCallback, useState} from 'react';
 
@@ -26,6 +22,7 @@ import {
   useFunctionStepper,
 } from '../hooks/useFunctionStepper';
 import {useCensus3Client, useCensus3CreateToken} from '../hooks/useCensus3';
+import {PartialGaslessParams} from '../utils/types';
 
 export enum GaslessProposalStepId {
   REGISTER_VOCDONI_ACCOUNT = 'REGISTER_VOCDONI_ACCOUNT',
@@ -57,7 +54,7 @@ export type UseCreateElectionProps = Omit<
 
 interface IProposalToElectionProps {
   metadata: ProposalMetadata;
-  data: CreateMajorityVotingProposalParams;
+  data: PartialGaslessParams;
   census: Census;
 }
 
@@ -71,7 +68,7 @@ const proposalToElection = ({
     description: metadata.description,
     question: metadata.summary,
     startDate: data.startDate,
-    endDate: data.endDate!,
+    endDate: data.endDate,
     meta: data, // Store all DAO metadata to retrieve it easily
     census: census,
   };
@@ -221,10 +218,11 @@ const useCreateGaslessProposal = ({
   const createProposal = useCallback(
     async (
       metadata: ProposalMetadata,
-      data: CreateMajorityVotingProposalParams,
+      data: PartialGaslessParams,
       handleOnchainProposal: (
         electionId?: string,
-        vochainCensus?: TokenCensus
+        vochainCensus?: TokenCensus,
+        gaslessParams?: PartialGaslessParams
       ) => Promise<Error | undefined>
     ) => {
       if (globalState === StepStatus.ERROR) {
@@ -261,7 +259,7 @@ const useCreateGaslessProposal = ({
       // 3. Register the proposal onchain
       await doStep(
         GaslessProposalStepId.CREATE_ONCHAIN_PROPOSAL,
-        async () => await handleOnchainProposal(electionId, census)
+        async () => await handleOnchainProposal(electionId, census, data)
       );
 
       // 4. All ready
